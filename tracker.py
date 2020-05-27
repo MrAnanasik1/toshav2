@@ -286,7 +286,7 @@ class ActionHandler:
         sheet = wb['Мероприятие']
         def prepare_plan(date: str, times: list):
             """
-            Сходить в БД, получить меню
+            Сходить в БД, получить планы
             :param date:
             :param times:
             :return:
@@ -299,12 +299,20 @@ class ActionHandler:
         now_date = datetime.datetime.now().strftime('%Y-%m-%d')
         time_entity = self.get_any_entity(entities,'time',dict())
         date = time_entity.get('value',now_date).split('T')[0]
-        # смотрим какое время хотят
+        # смотрим какую группу хотят
         TIMES = (
             ("group_1",sheet['B2'].value),
             ("group_2",sheet['B3'].value),
-            ("group_3",sheet['B5'].value),
-            ("group_4",sheet['B6'].value)
+            ("group_3",sheet['B4'].value),
+            ("group_4",sheet['B5'].value),
+            ("group_5",sheet['B6'].value),
+            ("group_6",sheet['B7'].value),
+            ("group_7",sheet['B8'].value),
+            ("group_8",sheet['B9'].value),
+            ("group_9",sheet['B10'].value),
+            ("group_10",sheet['B11'].value),
+            ("group_11",sheet['B12'].value),
+            ("group_12",sheet['B13'].value)
         )
         times = list()
         for e,v in TIMES:
@@ -340,7 +348,7 @@ if __name__ == "__main__":
     dialog = DialogTracker(interpreter = interpreter, action_handler=action_handler)
     while True:
         with m as source:
-            print("Скажи")
+            print("Говорите")
             audio = r.listen(source)
         query = r.recognize_google(audio, language="ru-RU")
         print("Вы сказали: " + query.lower())
