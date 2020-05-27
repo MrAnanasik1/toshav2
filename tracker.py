@@ -15,24 +15,6 @@ today = datetime.datetime.today()
 
 r = sr.Recognizer()
 m = sr.Microphone(device_index=1)
-with m as source:
-    print("Скажи")
-    audio = r.listen(source)
-
-
-# query = r.recognize_google(audio, language="ru-RU")
-# print("Вы сказали: " + query.lower())
-
-# with m as source:
-#     r.adjust_for_ambient_noise(source)
-
-# def callback(Recognizer, audio): 
-#         voice = Recognizer.recognize_google(audio, language = "ru-RU").lower()
-#         print("[log] Распознано: " + voice)
-    
-
-# stop_listening = r.listen_in_background(m, callback)
-# while True: time.sleep(0.1) #infinity loop
 
 
 class ActionHandler:
@@ -40,7 +22,7 @@ class ActionHandler:
         self.last_intent = None # последний обработанный интент
         self.last_entities = None # последние обработанные сущности
         self.confidence = confidence # порог принятия решения
-
+    
 
     @staticmethod
     def get_any_entity(entities: list, name: str, default = None):
@@ -150,7 +132,7 @@ class ActionHandler:
         :return:
         """
         return random.choice(["Всего доброго", "До свидания", "Всегда рад помочь"])
-
+    
 
     def on_twin_repeat(self, intent, entities):
         """
@@ -259,7 +241,6 @@ class ActionHandler:
         :param entities:
         :return:
         """
-
         wb = openpyxl.load_workbook('tosha.xlsx')
         sheet = wb['Меню']
         def prepare_menu(date: str, times: list):
@@ -293,7 +274,8 @@ class ActionHandler:
         # возвращаем результат
         return prepare_menu(date,times)
 
-    def on_ask_TV(self,intent, entities):
+    
+    def on_ask_plan(self,intent, entities):
         """
         :param intent:
         :param entities:
@@ -301,26 +283,28 @@ class ActionHandler:
         """
 
         wb = openpyxl.load_workbook('tosha.xlsx')
-        sheet = wb['Телепрограмма']
-        def prepare_tv(date: str, times: list):
+        sheet = wb['Мероприятие']
+        def prepare_plan(date: str, times: list):
             """
-            Сходить в БД, получить телепрограмму
+            Сходить в БД, получить меню
             :param date:
             :param times:
             :return:
             """
-        
-            fri_date = datetime.datetime(2020, 5, 29).strftime('%Y-%m-%d')
-            if date != fri_date:
-                return "Телепрограммы на {date} нет".format(date=date)
-            return "Телепрогамма {times}".format(date=date,times = ", ".join(times))
+            now_date = datetime.datetime.now().strftime('%Y-%m-%d')
+            if date != now_date:
+                return "Мероприятия на {date} нет".format(date=date)
+            return "Мероприятие {times}".format(date=date,times = ", ".join(times))
         # вытаскиваем дату или ставим текущую
         now_date = datetime.datetime.now().strftime('%Y-%m-%d')
         time_entity = self.get_any_entity(entities,'time',dict())
         date = time_entity.get('value',now_date).split('T')[0]
         # смотрим какое время хотят
         TIMES = (
-            ("TV",sheet['B2'].value),
+            ("group_1",sheet['B2'].value),
+            ("group_2",sheet['B3'].value),
+            ("group_3",sheet['B5'].value),
+            ("group_4",sheet['B6'].value)
         )
         times = list()
         for e,v in TIMES:
@@ -329,40 +313,7 @@ class ActionHandler:
         if len(times) < 1:
             times = [item[1] for item in TIMES]
         # возвращаем результат
-        return prepare_tv(date,times)
-
-    # def on_ask_menu(self,intent, entities):
-    #     """
-    #     Как обрабатываем просьбу "спрашивать меню"
-    #     :param intent:
-    #     :param entities:
-    #     :return:
-    #     """
-    #     wb = openpyxl.load_workbook('tosha.xlsx')
-    #     sheet = wb['Меню']
-
-    #     menu = list()
-    #     # обрабатываем каждую сущость, которая может ходить с данным интентом
-    #     if self.get_any_entity(entities,'time_breakfast'):
-    #         menu.append(sheet['B3'].value)
-    #     elif self.get_any_entity(entities,'time_dinner'):
-    #         menu.append(sheet['B4'].value)
-    #     elif self.get_any_entity(entities,'time_afternoon_tea'):
-    #         menu.append (sheet['B5'].value)
-    #     elif self.get_any_entity(entities,'time_supper'):
-    #         if self.get_any_entity(entities,'time').split('T')[0] != today.strftime("%Y-%m-%d"):
-    #             menu.append("Меню на эту дату нет")
-    #         else:
-    #             menu.append(sheet['B6'].value)
-    #     else:
-    #         menu.append(sheet['C2'].value)
-
-    #     #  формируем ответ
-    #     if len(menu) > 0:
-    #         return ". ".join(menu)
-    #     else:
-    #         return self.on_default(intent,entities)
-
+        return prepare_plan(date,times)
 
 class DialogTracker:
     """
@@ -400,4 +351,3 @@ if __name__ == "__main__":
         engine.say(output_text)
         engine.runAndWait()
     pass
-
